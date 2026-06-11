@@ -14,6 +14,11 @@ public static class SearchState
         _libraries.Add(new System.WeakReference<HUDBlueprintLibrary>(lib));
     }
 
+    public static void PrepareForShow()
+    {
+        _term = "";
+    }
+
     public static void UpdateTerm(string term)
     {
         _term = term ?? "";

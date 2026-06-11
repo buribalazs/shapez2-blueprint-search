@@ -25,7 +25,10 @@ public static class SearchUI
         var fieldTransform = root.Find("__BlueprintSearchField");
         if (fieldTransform == null) return;
 
-        // Always reset directly — onValueChanged won't fire if text is already "".
+        // Reset term to "" before touching the field so that the onValueChanged
+        // that follows doesn't count as "clearing an active search".
+        SearchState.PrepareForShow();
+
         var field = fieldTransform.GetComponent<TMP_InputField>();
         if (field != null) field.text = "";
         SearchOverlay.Refresh(lib, "");
