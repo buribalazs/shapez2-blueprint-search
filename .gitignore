@@ -1,0 +1,5 @@
+obj/
+bin/
+Steam/base.tmp.vdf
+.DS_Store
+*.user

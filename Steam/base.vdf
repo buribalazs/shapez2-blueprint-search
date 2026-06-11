@@ -1,0 +1,15 @@
+"workshopitem"
+{
+    "appid"             "2162800"
+    "publishedfileid"   "3742628335"
+    "contentfolder"     "CONTENT_PATH_PLACEHOLDER"
+    "previewfile"       "PREVIEW_IMG_PLACEHOLDER"
+    "visibility"        "2"
+    "title"             "Blueprint Search"
+    "description"       "Adds a search bar to the blueprint library so you can filter blueprints and folders by name.\n\nFeatures:\n- Searches across all folders, not just the currently open one\n- Keyboard navigation: arrow keys cycle through results, Enter confirms\n- Ctrl+F / Cmd+F focuses the search field\n- Clear button (×) on the search field\n- Resets automatically when you reopen the library"
+    "tags"
+    {
+        "tag"   "QoL"
+        "tag"   "UI"
+    }
+}

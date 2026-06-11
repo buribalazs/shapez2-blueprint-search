@@ -1,0 +1,20 @@
+{
+  "Version": "1.0.0",
+  "Title": "Blueprint Search",
+  "Description": "Adds a search bar to the blueprint library so you can filter blueprints and folders by name.",
+  "Author": "buribalazs",
+  "SavedModVersionCompabilityRangeWithSelf": "*",
+  "GameVersionSupportRange": "*",
+  "AffectsSaveGames": false,
+  "Conflicts": [],
+  "Assemblies": [
+    "BlueprintSearch.dll"
+  ],
+  "Dependencies": [
+    {
+      "ModId": "steam:3542611357",
+      "ModTitle": "Shapez Shifter",
+      "Version": "*"
+    }
+  ]
+}
