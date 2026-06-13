@@ -107,7 +107,7 @@ public static class SearchOverlay
         foreach (var entry in lib.BlueprintLibrary.RootEntry.AllChildren)
         {
             if (!(entry is BlueprintLibraryEntry bp)) continue;
-            if (bp.Title.IndexOf(term, System.StringComparison.OrdinalIgnoreCase) < 0) continue;
+            if (!Matches(term, bp.RelativePathWithoutExtension)) continue;
 
             var fullPath = bp.RelativePathWithoutExtension;
             var lastSlash = fullPath.LastIndexOf('/');
@@ -240,6 +240,37 @@ public static class SearchOverlay
             pRT.offsetMin = new Vector2(14f, 0f);
             pRT.offsetMax = new Vector2(-14f, 0f);
         }
+    }
+
+    // ── Matching ─────────────────────────────────────────────────────────────────
+
+    // 1. Substring match on the full path (case-insensitive).
+    //    "giant" → matches "SPACE/PAINT/giant mixer"
+    //    "paint/giant" → matches "SPACE/PAINT/giant mixer"
+    // 2. Subsequence match on stripped+lowercased path for 3+ char queries.
+    //    "spacgimix" → "spacepaintgiantmixer" → s,p,a,c from space; g,i from giant; m,i,x from mixer
+    private static bool Matches(string term, string fullPath)
+    {
+        if (fullPath.IndexOf(term, System.StringComparison.OrdinalIgnoreCase) >= 0)
+            return true;
+        if (term.Length < 3) return false;
+        return IsSubsequence(StripNonAlpha(term), StripNonAlpha(fullPath));
+    }
+
+    private static bool IsSubsequence(string query, string text)
+    {
+        int qi = 0;
+        for (int ti = 0; ti < text.Length && qi < query.Length; ti++)
+            if (text[ti] == query[qi]) qi++;
+        return qi == query.Length;
+    }
+
+    private static string StripNonAlpha(string s)
+    {
+        var sb = new System.Text.StringBuilder(s.Length);
+        foreach (var c in s)
+            if (char.IsLetterOrDigit(c)) sb.Append(char.ToLower(c));
+        return sb.ToString();
     }
 
     private static void CreateEmptyRow(Transform parent)
