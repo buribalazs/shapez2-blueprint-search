@@ -6,7 +6,7 @@
     "previewfile"       "PREVIEW_IMG_PLACEHOLDER"
     "visibility"        "2"
     "title"             "Blueprint Search"
-    "description"       "Adds a search bar to the blueprint library so you can filter blueprints and folders by name.\n\nFeatures:\n- Searches across all folders, not just the currently open one\n- Keyboard navigation: arrow keys cycle through results, Enter confirms\n- Ctrl+F / Cmd+F focuses the search field\n- Clear button (×) on the search field\n- Resets automatically when you reopen the library"
+    "description"       "Adds a search bar to the blueprint library so you can filter blueprints and folders by name.\n\nFeatures:\n- Fuzzy search across the full path — type 'spacgimix' to find a blueprint named 'giant mixer' inside the SPACE/PAINT folder\n- Searches folder names, not just blueprint titles\n- Keyboard navigation: arrow keys cycle through results, Enter confirms\n- Ctrl+F / Cmd+F focuses the search field\n- Clear button (×) on the search field\n- Resets automatically when you reopen the library"
     "tags"
     {
         "tag"   "QoL"
