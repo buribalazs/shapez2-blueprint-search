@@ -245,16 +245,36 @@ public static class SearchOverlay
     // ── Matching ─────────────────────────────────────────────────────────────────
 
     // 1. Substring match on the full path (case-insensitive).
-    //    "giant" → matches "SPACE/PAINT/giant mixer"
-    //    "paint/giant" → matches "SPACE/PAINT/giant mixer"
-    // 2. Subsequence match on stripped+lowercased path for 3+ char queries.
-    //    "spacgimix" → "spacepaintgiantmixer" → s,p,a,c from space; g,i from giant; m,i,x from mixer
+    //    "giant" or "paint/giant" → matches "SPACE/PAINT/giant mixer"
+    // 2. Fuzzy/subsequence for 3+ char queries, gated by a bigram check:
+    //    at least one adjacent pair of query chars must also appear adjacent in
+    //    the target. This eliminates false positives like "rot" matching
+    //    "COLOR/Color Mixer Giant" (r from color, o from color, t from giant —
+    //    but "ro" and "ot" never appear side-by-side in that path).
+    //    "spacgimix" passes because "sp","gi","mi","ix" all appear adjacently.
     private static bool Matches(string term, string fullPath)
     {
         if (fullPath.IndexOf(term, System.StringComparison.OrdinalIgnoreCase) >= 0)
             return true;
         if (term.Length < 3) return false;
-        return IsSubsequence(StripNonAlpha(term), StripNonAlpha(fullPath));
+
+        var q = StripNonAlpha(term);
+        var t = StripNonAlpha(fullPath);
+
+        if (!HasMatchingBigram(q, t)) return false;
+        return IsSubsequence(q, t);
+    }
+
+    private static bool HasMatchingBigram(string query, string text)
+    {
+        for (int qi = 0; qi < query.Length - 1; qi++)
+        {
+            char a = query[qi], b = query[qi + 1];
+            for (int ti = 0; ti < text.Length - 1; ti++)
+                if (text[ti] == a && text[ti + 1] == b)
+                    return true;
+        }
+        return false;
     }
 
     private static bool IsSubsequence(string query, string text)
