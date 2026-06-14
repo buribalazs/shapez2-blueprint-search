@@ -6,7 +6,7 @@
     "previewfile"       "PREVIEW_IMG_PLACEHOLDER"
     "visibility"        "2"
     "title"             "Blueprint Search"
-    "description"       "Adds a search bar to the blueprint library so you can filter blueprints and folders by name.\n\nFeatures:\n- Smart fuzzy search across the full path — type 'spacgimix' to find 'giant mixer' inside SPACE/PAINT, without false positives\n- Searches folder names, not just blueprint titles\n- Keyboard navigation: arrow keys cycle through results, Enter confirms\n- Ctrl+F / Cmd+F focuses the search field\n- Clear button (×) on the search field\n- Resets automatically when you reopen the library"
+    "description"       "Adds a search bar to the blueprint library so you can filter blueprints and folders by name.\n\n[h3]Features[/h3]\n[list][*][b]Smart fuzzy search[/b] across the full path[*]example: type [i]spacgimix[/i] to find [i]giant mixer[/i] inside [i]SPACE/PAINT[/i] folder[*]Searches folder names, not just blueprint titles[*]Keyboard navigation: arrow keys cycle through results, Enter confirms[*]Ctrl+F / Cmd+F focuses the search field[*]Clear button ([b]x[/b]) on the search field[*]Click outside the overlay to reset search and return to normal Blueprint view[/list]\n\nOpen source: [url=https://github.com/buribalazs/shapez2-blueprint-search]github.com/buribalazs/shapez2-blueprint-search[/url]"
     "tags"
     {
         "tag"   "QoL"

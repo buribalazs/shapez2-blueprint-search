@@ -22,11 +22,11 @@ VDF_TMP="${SCRIPT_DIR}/base.tmp.vdf"
 [[ -f "$PREVIEW_IMG" ]]  || { echo "Missing preview image: $PREVIEW_IMG (512x512 PNG recommended)."; exit 1; }
 command -v steamcmd      || { echo "steamcmd not found — install it with: brew install steamcmd"; exit 1; }
 
-# Substitute placeholders with real paths
+# Substitute placeholders and expand \n escape sequences to real newlines
 sed \
     -e "s|CONTENT_PATH_PLACEHOLDER|$CONTENT_PATH|g" \
     -e "s|PREVIEW_IMG_PLACEHOLDER|$PREVIEW_IMG|g" \
-    "$VDF_SRC" > "$VDF_TMP"
+    "$VDF_SRC" | perl -pe 's/\\n/\n/g' > "$VDF_TMP"
 
 echo "=== Publishing with ==="
 cat "$VDF_TMP"
