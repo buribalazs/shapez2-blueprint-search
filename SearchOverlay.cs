@@ -6,9 +6,15 @@ using UnityEngine.UI;
 public static class SearchOverlay
 {
     private const string OVERLAY_NAME = "__BlueprintSearchOverlay";
-    private const float ROW_HEIGHT = 56f;
 
-    private static readonly Color RowNormal = new Color(0.13f, 0.14f, 0.18f, 1f);
+    private const float ROW_HEIGHT      = 72f;
+    private const float ROW_SPACING     = 3f;
+    private const float PAD_TOP         = 8f;
+    private const float PAD_BOT         = 12f;
+    // Overlay starts this many px below the panel top (bar_top=10 + bar_height=48 + gap=4)
+    private const float OVERLAY_OFFSET  = 62f;
+
+    private static readonly Color RowNormal   = new Color(0.13f, 0.14f, 0.18f, 1f);
     private static readonly Color RowSelected = new Color(0.20f, 0.28f, 0.45f, 1f);
 
     private struct RowData
@@ -31,11 +37,14 @@ public static class SearchOverlay
         var overlay = new GameObject(OVERLAY_NAME);
         overlay.transform.SetParent(root, false);
 
+        // Top-anchored, 55 % width, starts just below the search bar.
+        // Height is set dynamically in Refresh: shrinks to content, fills to panel bottom on long lists.
         var rt = overlay.AddComponent<RectTransform>();
-        rt.anchorMin = Vector2.zero;
-        rt.anchorMax = Vector2.one;
-        rt.offsetMin = Vector2.zero;
-        rt.offsetMax = Vector2.zero;
+        rt.anchorMin        = new Vector2(0f, 1f);
+        rt.anchorMax        = new Vector2(0.37f, 1f);
+        rt.pivot            = new Vector2(0.5f, 1f);
+        rt.anchoredPosition = new Vector2(0f, -OVERLAY_OFFSET);
+        rt.sizeDelta        = new Vector2(-20f, 200f);
 
         var bg = overlay.AddComponent<Image>();
         bg.color = new Color(0.05f, 0.06f, 0.09f, 0.97f);
@@ -43,9 +52,9 @@ public static class SearchOverlay
         var viewport = new GameObject("Viewport");
         viewport.transform.SetParent(overlay.transform, false);
         var vpRT = viewport.AddComponent<RectTransform>();
-        vpRT.anchorMin = Vector2.zero;
-        vpRT.anchorMax = Vector2.one;
-        vpRT.sizeDelta = Vector2.zero;
+        vpRT.anchorMin       = Vector2.zero;
+        vpRT.anchorMax       = Vector2.one;
+        vpRT.sizeDelta       = Vector2.zero;
         vpRT.anchoredPosition = Vector2.zero;
         viewport.AddComponent<RectMask2D>();
 
@@ -54,28 +63,28 @@ public static class SearchOverlay
         var cRT = content.AddComponent<RectTransform>();
         cRT.anchorMin = new Vector2(0f, 1f);
         cRT.anchorMax = new Vector2(1f, 1f);
-        cRT.pivot = new Vector2(0.5f, 1f);
+        cRT.pivot     = new Vector2(0.5f, 1f);
         cRT.sizeDelta = Vector2.zero;
 
         var vlg = content.AddComponent<VerticalLayoutGroup>();
-        vlg.childControlHeight = true;
-        vlg.childControlWidth = true;
+        vlg.childControlHeight    = true;
+        vlg.childControlWidth     = true;
         vlg.childForceExpandHeight = false;
-        vlg.childForceExpandWidth = true;
-        vlg.spacing = 3f;
-        vlg.padding = new RectOffset(12, 12, 52, 12);
+        vlg.childForceExpandWidth  = true;
+        vlg.spacing = ROW_SPACING;
+        vlg.padding = new RectOffset(12, 12, (int)PAD_TOP, (int)PAD_BOT);  // PAD_TOP is small: overlay already starts below the bar
 
         var csf = content.AddComponent<ContentSizeFitter>();
         csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
         var sr = overlay.AddComponent<ScrollRect>();
-        sr.viewport = vpRT;
-        sr.content = cRT;
-        sr.horizontal = false;
-        sr.vertical = true;
+        sr.viewport         = vpRT;
+        sr.content          = cRT;
+        sr.horizontal       = false;
+        sr.vertical         = true;
         sr.scrollSensitivity = 30f;
-        sr.movementType = ScrollRect.MovementType.Clamped;
-        sr.inertia = true;
+        sr.movementType     = ScrollRect.MovementType.Clamped;
+        sr.inertia          = true;
         sr.decelerationRate = 0.135f;
 
         overlay.SetActive(false);
@@ -96,6 +105,8 @@ public static class SearchOverlay
         if (!searching) return;
 
         _scrollRect = overlayTransform.GetComponent<ScrollRect>();
+        if (_scrollRect != null)
+            _scrollRect.content.anchoredPosition = Vector2.zero;
 
         var content = overlayTransform.Find("Viewport/Content");
         if (content == null) return;
@@ -109,7 +120,7 @@ public static class SearchOverlay
             if (!(entry is BlueprintLibraryEntry bp)) continue;
             if (!Matches(term, bp.RelativePathWithoutExtension)) continue;
 
-            var fullPath = bp.RelativePathWithoutExtension;
+            var fullPath  = bp.RelativePathWithoutExtension;
             var lastSlash = fullPath.LastIndexOf('/');
             var folderPath = lastSlash >= 0 ? fullPath.Substring(0, lastSlash) : "";
 
@@ -120,6 +131,18 @@ public static class SearchOverlay
 
         if (!anyMatch)
             CreateEmptyRow(content);
+
+        // Resize overlay: shrink to content for short lists, fill to panel bottom for long lists.
+        var parentRT = overlayTransform.parent as RectTransform;
+        float panelH = (parentRT != null && parentRT.rect.height > 0f) ? parentRT.rect.height : 800f;
+        float maxH   = panelH - OVERLAY_OFFSET - PAD_BOT;
+
+        float rowsH = _rows.Count > 0
+            ? _rows.Count * ROW_HEIGHT + (_rows.Count - 1) * ROW_SPACING
+            : 80f; // "no results" row height
+        float totalH = Mathf.Min(PAD_TOP + rowsH + PAD_BOT, maxH);
+        var overlayRT = overlayTransform.GetComponent<RectTransform>();
+        overlayRT.sizeDelta = new Vector2(overlayRT.sizeDelta.x, totalH);
     }
 
     public static bool IsVisible(HUDBlueprintLibrary lib)
@@ -128,7 +151,7 @@ public static class SearchOverlay
         return t != null && t.gameObject.activeSelf;
     }
 
-    // delta = +1 (down) or -1 (up). field is used to re-focus when going above the first row.
+    // delta = +1 (down) or -1 (up). field is re-focused when going above the first row.
     public static void MoveSelection(int delta, TMP_InputField field)
     {
         if (_rows.Count == 0) return;
@@ -171,14 +194,14 @@ public static class SearchOverlay
         if (_scrollRect == null) return;
 
         var vlg = _scrollRect.content.GetComponent<VerticalLayoutGroup>();
-        float padTop = vlg != null ? vlg.padding.top : 0f;
+        float padTop  = vlg != null ? vlg.padding.top : 0f;
         float spacing = vlg != null ? vlg.spacing : 0f;
 
-        float rowTop = padTop + index * (ROW_HEIGHT + spacing);
+        float rowTop    = padTop + index * (ROW_HEIGHT + spacing);
         float rowBottom = rowTop + ROW_HEIGHT;
 
-        float viewH = _scrollRect.viewport.rect.height;
-        float scrollTop = -_scrollRect.content.anchoredPosition.y;
+        float viewH       = _scrollRect.viewport.rect.height;
+        float scrollTop   = -_scrollRect.content.anchoredPosition.y;
         float scrollBottom = scrollTop + viewH;
 
         if (rowTop < scrollTop)
@@ -194,7 +217,7 @@ public static class SearchOverlay
 
         var le = row.AddComponent<LayoutElement>();
         le.preferredHeight = ROW_HEIGHT;
-        le.minHeight = ROW_HEIGHT;
+        le.minHeight       = ROW_HEIGHT;
 
         var bg = row.AddComponent<Image>();
         bg.color = RowNormal;
@@ -202,9 +225,9 @@ public static class SearchOverlay
         var btn = row.AddComponent<Button>();
         btn.targetGraphic = bg;
         var colors = btn.colors;
-        colors.normalColor = Color.white;
+        colors.normalColor      = Color.white;
         colors.highlightedColor = new Color(1.4f, 1.4f, 1.6f, 1f);
-        colors.pressedColor = new Color(1.6f, 1.6f, 2f, 1f);
+        colors.pressedColor     = new Color(1.6f, 1.6f, 2f,   1f);
         btn.colors = colors;
         btn.onClick.AddListener(() => onClick());
 
@@ -212,12 +235,12 @@ public static class SearchOverlay
 
         float titleTop = string.IsNullOrEmpty(folderPath) ? 0.2f : 0.45f;
 
-        var titleGO = new GameObject("Title");
+        var titleGO   = new GameObject("Title");
         titleGO.transform.SetParent(row.transform, false);
         var titleText = titleGO.AddComponent<TextMeshProUGUI>();
-        titleText.text = title;
-        titleText.color = Color.white;
-        titleText.fontSize = 15f;
+        titleText.text      = title;
+        titleText.color     = Color.white;
+        titleText.fontSize  = 20f;
         titleText.alignment = TextAlignmentOptions.MidlineLeft;
         var tRT = titleText.rectTransform;
         tRT.anchorMin = new Vector2(0f, titleTop);
@@ -227,12 +250,12 @@ public static class SearchOverlay
 
         if (!string.IsNullOrEmpty(folderPath))
         {
-            var pathGO = new GameObject("Path");
+            var pathGO   = new GameObject("Path");
             pathGO.transform.SetParent(row.transform, false);
             var pathText = pathGO.AddComponent<TextMeshProUGUI>();
-            pathText.text = folderPath;
-            pathText.color = new Color(0.55f, 0.60f, 0.70f, 1f);
-            pathText.fontSize = 11f;
+            pathText.text      = folderPath;
+            pathText.color     = new Color(0.37f, 0.60f, 0.70f, 1f);
+            pathText.fontSize  = 15f;
             pathText.alignment = TextAlignmentOptions.MidlineLeft;
             var pRT = pathText.rectTransform;
             pRT.anchorMin = new Vector2(0f, 0f);
@@ -299,12 +322,12 @@ public static class SearchOverlay
         go.transform.SetParent(parent, false);
 
         var le = go.AddComponent<LayoutElement>();
-        le.preferredHeight = 60f;
+        le.preferredHeight = 80f;
 
         var text = go.AddComponent<TextMeshProUGUI>();
-        text.text = "No blueprints found";
-        text.color = new Color(0.5f, 0.5f, 0.6f, 1f);
-        text.fontSize = 14f;
+        text.text      = "No blueprints found";
+        text.color     = new Color(0.5f, 0.5f, 0.6f, 1f);
+        text.fontSize  = 18f;
         text.alignment = TextAlignmentOptions.Center;
     }
 }
