@@ -40,7 +40,7 @@ FILE_ID=$(grep '"publishedfileid"' "$VDF_TMP" | grep -oE '[0-9]+' | head -1)
 
 if [[ -n "$FILE_ID" && "$FILE_ID" != "0" ]]; then
     # BSD sed (macOS) needs -i ''
-    sed -i '' 's/\("publishedfileid"[[:space:]]*"\)[0-9]*/\1'"$FILE_ID"'"/' "$VDF_SRC"
+    sed -i '' 's/\("publishedfileid"[[:space:]]*"\)[0-9]*/\1'"$FILE_ID"'/' "$VDF_SRC"
     echo
     echo "=== Done ==="
     echo "Workshop item ID : $FILE_ID"
