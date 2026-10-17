@@ -125,7 +125,7 @@ public static class SearchOverlay
             var folderPath = lastSlash >= 0 ? fullPath.Substring(0, lastSlash) : "";
 
             var captured = bp;
-            CreateRow(content, bp.Title, folderPath, () => lib.SelectBlueprint(captured.Blueprint));
+            CreateRow(content, bp.Title, folderPath, () => lib.SelectBlueprint(captured));
             anyMatch = true;
         }
 

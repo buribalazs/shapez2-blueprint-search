@@ -20,6 +20,10 @@
             <HintPath>$(SPZ2_PATH)/SPZGameAssembly.dll</HintPath>
             <Private>False</Private>
         </Reference>
+        <Reference Include="Game.Core.Blueprint">
+            <HintPath>$(SPZ2_PATH)/Game.Core.Blueprint.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
         <Reference Include="Game.Hud">
             <HintPath>$(SPZ2_PATH)/Game.Hud.dll</HintPath>
             <Private>False</Private>
